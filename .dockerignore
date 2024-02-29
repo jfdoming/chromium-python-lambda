@@ -1,0 +1,10 @@
+data/
+*.txt
+*.json
+*.md
+*.png
+*.zip
+.otp
+# TODO(jfdoming): remove once CfT supports arm64
+!requirements.txt
+!dev-requirements.txt

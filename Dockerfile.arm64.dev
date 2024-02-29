@@ -12,7 +12,6 @@ RUN sudo mkdir -p /opt/chrome && \
 COPY dev-requirements.txt /dev-requirements.txt
 RUN pip install -r /dev-requirements.txt
 
-#INCLUDE+ Dockerfile.arm64.base
 INCLUDE+ Dockerfile.common
 
 # TODO(jfdoming): remove once CfT supports arm64

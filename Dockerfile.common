@@ -1,10 +1,10 @@
 COPY requirements.txt /var/task/requirements.txt
 RUN pip install -r /var/task/requirements.txt
-COPY lambda_function.py main.py /var/task/
-COPY scrape/ /var/task/scrape/
+COPY layers/scraper_layer.zip /opt/scraper_layer.zip
+RUN unzip -o /opt/scraper_layer.zip -d /var/task && SUDO="$(command -v sudo > /dev/null && echo sudo || echo)" && $SUDO rm /opt/scraper_layer.zip
 COPY scripts/ /var/task/scripts/
-RUN SUDO="$(command -v sudo > /dev/null && echo sudo || echo)" && $SUDO /var/task/scripts/update_cd.sh
-RUN mkdir -p /opt/bin && ln -sf /opt/chrome/chrome /opt/bin/chromium
+RUN ! test -f /opt/bin/chromium && mkdir -p /opt/bin && ln -sf /opt/chrome/chrome /opt/bin/chromium || true
+RUN SUDO="$(command -v sudo > /dev/null && echo sudo || echo)" && $SUDO /var/task/scripts/update_cd.sh /opt/bin/chromium
 
 # Reset this to the normal AWS convention.
 CMD ["lambda_function.lambda_handler"]

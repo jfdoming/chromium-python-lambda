@@ -2,8 +2,9 @@ import json
 import os
 import subprocess
 import sys
-from io import FileIO
+from io import IOBase
 from tempfile import TemporaryFile
+from typing import Any
 
 
 def get_env():
@@ -28,7 +29,7 @@ def TempFile():
     return TemporaryFile(mode="w+b")
 
 
-def read_file(file: FileIO):
+def read_file(file: IOBase):
     file.seek(0)
     return file.read().decode("utf-8")
 
@@ -37,7 +38,7 @@ CMD_BASE = ["python", "main.py"]
 REDACTED_CMD = ["python", "main.py", "..."]
 
 
-def lambda_handler(event, _):
+def lambda_handler(event: Any, _):
     with TempFile() as stdout, TempFile() as stderr:
         try:
             subprocess.run(

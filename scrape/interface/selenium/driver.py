@@ -1,16 +1,17 @@
 from tempfile import mkdtemp
-from typing import Any, Callable
+from typing import Any
 
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.wait import WebDriverWait
 
 from scrape.interface import Interface
-from scrape.interface.interface import SelectOptions
 
 
-class SeleniumInterface(Interface):
+class SeleniumInterface(Interface[WebElement]):
     def __get_options(self):
         return {
             "headless": "new",
@@ -37,15 +38,18 @@ class SeleniumInterface(Interface):
 
     @staticmethod
     def __create_options(options_dict: dict[str, Any]):
-        options = webdriver.ChromeOptions()
+        options = Options()
         options.binary_location = "/opt/bin/chromium"
-        options.capabilities
         for key, value in options_dict.items():
             if isinstance(value, bool):
                 if value:
-                    options.add_argument(f"--{key}")
+                    options.add_argument(  # pyright: ignore [reportUnknownMemberType] # noqa: E501
+                        f"--{key}"
+                    )
             else:
-                options.add_argument(f"--{key}={value}")
+                options.add_argument(  # pyright: ignore [reportUnknownMemberType] # noqa: E501
+                    f"--{key}={value}"
+                )
 
         return options
 
@@ -55,7 +59,7 @@ class SeleniumInterface(Interface):
         self.__options = SeleniumInterface.__create_options(
             self.__get_options()
         )
-        self.__service = webdriver.chrome.service.Service(
+        self.__service = Service(
             executable_path="/opt/bin/chromedriver",
         )
         self.__driver = None
@@ -68,59 +72,73 @@ class SeleniumInterface(Interface):
         return self
 
     def __exit__(self, *_):
-        self.__driver.quit()
+        if self.__driver is not None:
+            self.__driver.quit()
+            self.__driver = None
 
     @property
     def url(self):
+        if self.__driver is None:
+            return ""
         return self.__driver.current_url
 
     @url.setter
     def url(self, url: str):
-        self.__driver.get(url)
+        assert self.__driver is not None, "Driver is not initialized"
 
-    def __call_with_timeout(
-        self,
-        method: Callable,
-        timeout: int | None,
-        *args: list[Any],
-        **kwargs: dict[str, Any],
-    ):
-        if timeout is not None:
-            wait = WebDriverWait(self.__driver, timeout)
-            try:
-                return wait.until(lambda _: method(*args, **kwargs))
-            except Exception:
-                return None
-        return method(*args, **kwargs)
+        self.__driver.get(url)
+        return self.__driver.current_url
 
     def _by_id(self, id: str, timeout: int | None) -> WebElement | None:
-        return self.__call_with_timeout(
-            self.__driver.find_element, timeout, By.ID, id
-        )
+        assert self.__driver is not None, "Driver is not initialized"
+        if timeout is None:
+            return self.__driver.find_element(By.ID, id)
+
+        wait = WebDriverWait(self.__driver, timeout)
+        try:
+            return wait.until(lambda driver: driver.find_element(By.ID, id))
+        except Exception:
+            return None
 
     def _by_query(
         self,
         query: str,
         timeout: int | None,
     ) -> list[WebElement]:
-        return self.__call_with_timeout(
-            self.__driver.find_elements, timeout, By.CSS_SELECTOR, query
-        )
+        assert self.__driver is not None, "Driver is not initialized"
+        if timeout is None:
+            return self.__driver.find_elements(By.CSS_SELECTOR, query)
+
+        wait = WebDriverWait(self.__driver, timeout)
+        try:
+            return wait.until(
+                lambda driver: driver.find_elements(By.CSS_SELECTOR, query)
+            )
+        except Exception:
+            return []
 
     def _by_text(
-        self, els: list[WebElement], text: str, _: int | None
+        self, els: list[WebElement], text: str, timeout: int | None
     ) -> list[WebElement]:
         return [el for el in els if el.text == text]
 
-    def click(self, **kwargs: SelectOptions):
-        el = self._select_for_action(**kwargs)
+    def _click(
+        self,
+        el: WebElement,
+    ) -> WebElement:
         el.click()
         return el
 
-    def type(self, text: str, **kwargs: SelectOptions):
-        el = self._select_for_action(**kwargs)
-        el.send_keys(text)
+    def _type(self, el: WebElement, text: str) -> WebElement:
+        el.send_keys(  # pyright: ignore [reportUnknownMemberType] # noqa: E501
+            text
+        )
         return el
 
-    def screenshot(self, path: str = "/var/task/scrape/screenshot.png"):
-        self.__driver.save_screenshot(path)
+    def screenshot(self, path: str | None = "/var/task/scrape/screenshot.png"):
+        assert self.__driver is not None, "Driver is not initialized"
+        if path is None:
+            path = "/var/task/scrape/screenshot.png"
+        self.__driver.save_screenshot(  # pyright: ignore [reportUnknownMemberType] # noqa: E501
+            path
+        )

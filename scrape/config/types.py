@@ -6,6 +6,6 @@ StrippedStr = Annotated[str, StringConstraints(strip_whitespace=True)]
 
 
 class StrippedSecretStr(SecretStr):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, secret_value: str):
+        super().__init__(secret_value=secret_value)
         self._secret_value = self._secret_value.strip()

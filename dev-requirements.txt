@@ -1,3 +1,5 @@
+# Requirements built into the runtime
+
 # boto3
 boto3==1.34.45
 botocore==1.34.45

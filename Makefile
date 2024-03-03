@@ -43,6 +43,8 @@ call:
 
 setup-symlinks:
 	@ln -sf "$$(realpath scrape/)" "$$PROJECT_ROOT"/scrape
+	@ln -sf "$$(realpath requirements.txt)" "$$PROJECT_ROOT"/requirements.txt
+	@ln -sf "$$(realpath dev-requirements.txt)" "$$PROJECT_ROOT"/dev-requirements.txt
 
 help:
 	@echo "Usage: make [build | run | test | layers | call | help]"

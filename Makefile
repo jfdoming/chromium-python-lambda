@@ -12,13 +12,13 @@ run@layers: build@layers
 	@scripts/run_docker.sh amd64
 
 build@amd64: layers
-	@docker build --platform linux/amd64 . -t python-scraper
+	@scripts/build_docker.sh amd64 Dockerfile
 
 build@arm64: layers
-	@docker build --platform linux/arm64 -f Dockerfile.arm64.dev . -t python-scraper
+	@scripts/build_docker.sh arm64 Dockerfile.arm64.dev
 
 build@layers: layers
-	@docker build --platform linux/amd64 -f Dockerfile.layers . -t python-scraper
+	@scripts/build_docker.sh amd64 Dockerfile.layers
 
 
 layers: layers/py_deps_layer.zip layers/chrome_layer.zip layers/scraper_layer.zip layers/chromedriver_local_libs_layer.zip
@@ -43,7 +43,7 @@ call:
 
 setup-symlinks:
 	@ln -snf "$$(realpath scrape/)" "$$PROJECT_ROOT"/scrape
-	@ln -sf "$$(realpath requirements.txt)" "$$PROJECT_ROOT"/requirements.txt
+	@ln -s "$$(realpath requirements.txt)" "$$PROJECT_ROOT"/requirements.txt || true
 	@ln -sf "$$(realpath dev-requirements.txt)" "$$PROJECT_ROOT"/dev-requirements.txt
 
 help:

@@ -1,5 +1,7 @@
-COPY requirements.txt /var/task/requirements.txt
+ARG requirements_file
+COPY $requirements_file /var/task/requirements.txt
 RUN pip install -r /var/task/requirements.txt
+
 COPY layers/scraper_layer.zip /opt/scraper_layer.zip
 RUN unzip -o /opt/scraper_layer.zip -d /var/task && SUDO="$(command -v sudo > /dev/null && echo sudo || echo)" && $SUDO rm /opt/scraper_layer.zip
 COPY scripts/ /var/task/scripts/

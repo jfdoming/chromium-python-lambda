@@ -14,6 +14,4 @@ if [ -n "$PROJECT_ROOT" ] && [ -f "$PROJECT_ROOT"/requirements.txt ]; then
     cat "$PROJECT_ROOT"/requirements.txt >> "$requirements_file"
 fi
 
-echo $PWD
-
 docker build --platform linux/"$1" -f "$2" --build-arg requirements_file="$requirements_file" . -t python-scraper

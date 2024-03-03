@@ -43,7 +43,7 @@ call:
 
 setup-symlinks:
 	@ln -snf "$$(realpath scrape/)" "$$PROJECT_ROOT"/scrape
-	@ln -s "$$(realpath requirements.txt)" "$$PROJECT_ROOT"/requirements.txt || true
+	@ln -s "$$(realpath requirements.txt)" "$$PROJECT_ROOT"/requirements.txt 2>/dev/null || ln -sf "$$(realpath requirements.txt)" "$$PROJECT_ROOT"/scraper-requirements.txt
 	@ln -sf "$$(realpath dev-requirements.txt)" "$$PROJECT_ROOT"/dev-requirements.txt
 
 help:

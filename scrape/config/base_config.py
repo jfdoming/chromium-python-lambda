@@ -10,8 +10,8 @@ class BaseConfig(BaseModel):
     model_config = ConfigDict(frozen=True)
     verbosity: Annotated[NonNegativeInt, Strict] = 1
 
-    @cache
     @classmethod
+    @cache
     def get(cls):
         if len(sys.argv) < 2:
             with open("config.json", "r") as config:

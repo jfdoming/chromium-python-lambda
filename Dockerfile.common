@@ -3,7 +3,7 @@ RUN pip install -r /var/task/requirements.txt
 COPY layers/scraper_layer.zip /opt/scraper_layer.zip
 RUN unzip -o /opt/scraper_layer.zip -d /var/task && SUDO="$(command -v sudo > /dev/null && echo sudo || echo)" && $SUDO rm /opt/scraper_layer.zip
 COPY scripts/ /var/task/scripts/
-RUN ! test -f /opt/bin/chromium && mkdir -p /opt/bin && ln -sf /opt/chrome/chrome /opt/bin/chromium || true
+RUN ! test -f /opt/bin/chromium && mkdir -p /opt/bin && ln -sf /opt/chrome/chrome /opt/bin/chromium && ln -sf /opt/chrome/chromedriver /opt/bin/chromedriver || true
 RUN SUDO="$(command -v sudo > /dev/null && echo sudo || echo)" && $SUDO /var/task/scripts/update_cd.sh /opt/bin/chromium
 
 # Reset this to the normal AWS convention.

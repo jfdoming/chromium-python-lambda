@@ -7,6 +7,7 @@ RUN sudo apt-get update && \
     sudo rm /usr/lib/python3.11/EXTERNALLY-MANAGED
 RUN sudo mkdir -p /opt/chrome && \
     sudo ln -s /usr/bin/chromium /opt/chrome/chrome && \
+    sudo ln -s /usr/bin/chromedriver /opt/chrome/chromedriver && \
     sudo mkdir -p /var/task && \
     sudo chmod 777 /var/task
 COPY dev-requirements.txt /dev-requirements.txt

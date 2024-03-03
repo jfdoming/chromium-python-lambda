@@ -1,27 +1,20 @@
-ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-BASE_OPTS := -p 80:8080 --rm -e IS_DEV=1 --name python-scraper python-scraper
-EXTRA_OPTS := --volume ${ROOT_DIR}/scrape:/var/task/scrape \
-	    --volume ${ROOT_DIR}/main.py:/var/task/main.py \
-		--volume ${ROOT_DIR}/.otp:/var/task/.otp \
-		--volume ${ROOT_DIR}/layers:/var/task/layers
-
-.PHONY: build@amd64 build@arm64 build-otp run run@arm64 run@amd64 call help
+.PHONY: build@amd64 build@arm64 build-otp run run@arm64 run@amd64 layers layers/scraper_layer.zip call setup-symlinks help
 
 run: run@arm64
 
 run@amd64: .otp build@amd64
-	@exec bash -c "docker run --platform linux/amd64 ${EXTRA_OPTS} ${BASE_OPTS}"
+	@scripts/run_docker.sh amd64
 
 run@arm64: .otp build@arm64
-	@exec bash -c "docker run --platform linux/arm64 ${EXTRA_OPTS} ${BASE_OPTS}"
+	@scripts/run_docker.sh arm64
 
 run@layers: build@layers
-	@exec bash -c "docker run --platform linux/amd64 ${EXTRA_OPTS} ${BASE_OPTS}"
+	@scripts/run_docker.sh amd64
 
-build@amd64:
+build@amd64: layers
 	@docker build --platform linux/amd64 . -t python-scraper
 
-build@arm64:
+build@arm64: layers
 	@docker build --platform linux/arm64 -f Dockerfile.arm64.dev . -t python-scraper
 
 build@layers: layers
@@ -43,10 +36,13 @@ layers/scraper_layer.zip: scripts/build_scraper_layer.sh *.py scrape/* scrape/*/
 	@scripts/build_scraper_layer.sh
 
 test:
-	@curl localhost/2015-03-31/functions/function/invocations -d "$$(cat config.json)" 2>/dev/null | python3 local/pretty_output.py
+	@curl localhost/2015-03-31/functions/function/invocations -d "$$(cat $$PROJECT_ROOT/config.json)" 2>/dev/null | python3 local/pretty_output.py
 
 call:
 	@scripts/run_lambda.sh scraper_arn
+
+setup-symlinks:
+	@ln -sf "$$(realpath scrape/)" "$$PROJECT_ROOT"/scrape
 
 help:
 	@echo "Usage: make [build | run | test | layers | call | help]"

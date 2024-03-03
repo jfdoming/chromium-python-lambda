@@ -7,6 +7,7 @@ class SelectOptions(TypedDict):
     query: str | None
     index: int | None
     text: str | None
+    timeout: int | None
 
 
 class Interface(ABC):
@@ -21,24 +22,30 @@ class Interface(ABC):
 
         return EngineInterface(*args, **kwargs)
 
+    def __init__(self, timeout: int | None = None):
+        self.timeout = timeout
+
     @property
     @abstractmethod
     def url(self, url: str) -> str:
         pass
 
     @abstractmethod
-    def _by_id(self, id: str) -> Any | None:
+    def _by_id(self, id: str, timeout: int | None) -> Any | None:
         pass
 
     @abstractmethod
     def _by_query(
         self,
         query: str,
+        timeout: int | None,
     ) -> list[Any]:
         pass
 
     @abstractmethod
-    def _by_text(self, els: list[Any], text: str) -> list[Any]:
+    def _by_text(
+        self, els: list[Any], text: str, timeout: int | None
+    ) -> list[Any]:
         pass
 
     @abstractmethod
@@ -58,16 +65,17 @@ class Interface(ABC):
         pass
 
     def select(self, **kwargs: SelectOptions) -> Any | list[Any] | None:
+        timeout = kwargs.pop("timeout", self.timeout)
         if "id" in kwargs:
-            el = self._by_id(id=kwargs["id"])
+            el = self._by_id(id=kwargs["id"], timeout=timeout)
             if el and "text" in kwargs:
-                els = self._by_text([el], text=kwargs["text"])
+                els = self._by_text([el], text=kwargs["text"], timeout=timeout)
                 return els[0] if els else None
             return el
         if "query" in kwargs:
-            els = self._by_query(query=kwargs["query"])
+            els = self._by_query(query=kwargs["query"], timeout=timeout)
             if "text" in kwargs:
-                els = self._by_text(els, text=kwargs["text"])
+                els = self._by_text(els, text=kwargs["text"], timeout=timeout)
             if "index" in kwargs:
                 return (
                     els[kwargs["index"]]

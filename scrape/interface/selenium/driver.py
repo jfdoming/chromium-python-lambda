@@ -1,9 +1,10 @@
 from tempfile import mkdtemp
-from typing import Any
+from typing import Any, Callable
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.ui import WebDriverWait
 
 from scrape.interface import Interface
 from scrape.interface.interface import SelectOptions
@@ -48,7 +49,9 @@ class SeleniumInterface(Interface):
 
         return options
 
-    def __init__(self):
+    def __init__(self, timeout: int | None = None):
+        super().__init__(timeout=timeout)
+
         self.__options = SeleniumInterface.__create_options(
             self.__get_options()
         )
@@ -75,16 +78,38 @@ class SeleniumInterface(Interface):
     def url(self, url: str):
         self.__driver.get(url)
 
-    def _by_id(self, id: str) -> WebElement | None:
-        return self.__driver.find_element(By.ID, id)
+    def __call_with_timeout(
+        self,
+        method: Callable,
+        timeout: int | None,
+        *args: list[Any],
+        **kwargs: dict[str, Any],
+    ):
+        if timeout is not None:
+            wait = WebDriverWait(self.__driver, timeout)
+            try:
+                return wait.until(lambda _: method(*args, **kwargs))
+            except Exception:
+                return None
+        return method(*args, **kwargs)
+
+    def _by_id(self, id: str, timeout: int | None) -> WebElement | None:
+        return self.__call_with_timeout(
+            self.__driver.find_element, timeout, By.ID, id
+        )
 
     def _by_query(
         self,
         query: str,
+        timeout: int | None,
     ) -> list[WebElement]:
-        return self.__driver.find_elements(By.CSS_SELECTOR, query)
+        return self.__call_with_timeout(
+            self.__driver.find_elements, timeout, By.CSS_SELECTOR, query
+        )
 
-    def _by_text(self, els: list[WebElement], text: str) -> list[WebElement]:
+    def _by_text(
+        self, els: list[WebElement], text: str, _: int | None
+    ) -> list[WebElement]:
         return [el for el in els if el.text == text]
 
     def click(self, **kwargs: SelectOptions):

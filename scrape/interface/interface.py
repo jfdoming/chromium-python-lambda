@@ -217,3 +217,7 @@ class Interface(ABC, Generic[ElementType]):
 
         assert el is not None, "Element not found"
         return el
+
+    @abstractmethod
+    def switch_to_frame(self, selector: str | int) -> None:
+        pass

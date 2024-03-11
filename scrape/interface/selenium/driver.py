@@ -142,3 +142,7 @@ class SeleniumInterface(Interface[WebElement]):
         self.__driver.save_screenshot(  # pyright: ignore [reportUnknownMemberType] # noqa: E501
             path
         )
+
+    def switch_to_frame(self, selector: str | int):
+        assert self.__driver is not None, "Driver is not initialized"
+        self.__driver.switch_to.frame(selector)

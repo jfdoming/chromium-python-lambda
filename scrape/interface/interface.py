@@ -159,6 +159,7 @@ class Interface(ABC, Generic[ElementType]):
         text: str | None = None,
         timeout: int | None = None,
     ) -> ElementType | list[ElementType] | None:
+        timeout = self.timeout if timeout is None else timeout
         if id is not None:
             el = self._by_id(id=id, timeout=timeout)
             if el and text is not None:

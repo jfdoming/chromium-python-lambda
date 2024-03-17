@@ -66,11 +66,15 @@ def lambda_handler(event: Any, _):
                 "FileNotFoundError: Did you forget to add a main.py file?"
             )
 
-        return {
-            "status": "error",
-            "stdout": read_file(stdout),
-            "stderr": read_file(stderr) + "\n---\n" + error_message,
-        }
+        raise Exception(
+            json.dumps(
+                {
+                    "status": "error",
+                    "stdout": read_file(stdout),
+                    "stderr": read_file(stderr) + "\n---\n" + error_message,
+                }
+            )
+        )
 
 
 if __name__ == "__main__":

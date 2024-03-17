@@ -4,9 +4,13 @@ import sys
 resp = json.load(sys.stdin)
 print("---")
 if "errorType" in resp:
-    print(resp["errorMessage"], file=sys.stderr)
-    sys.exit(1)
-elif "status" in resp:
+    try:
+        resp = json.loads(resp["errorMessage"])
+        assert "status" in resp and resp["status"] == "error"
+    except (json.JSONDecodeError, AssertionError):
+        print(resp["errorMessage"], file=sys.stderr)
+        sys.exit(1)
+if "status" in resp:
     if "stdout" in resp:
         print(resp["stdout"])
     if "stderr" in resp:
